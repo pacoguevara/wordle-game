@@ -9,9 +9,10 @@ async function init () {
   const res = await fetch('https://words.dev-apis.com/word-of-the-day');
   const resObj = await res.json();
   const word = resObj.word.toUpperCase();
+  const wordParts = word.split('');
+
   setLoading(false);
-  console.log(word);
-  
+ 
   function addLetter (letter) {
     if (currentGuess.length < ANSWER_LENGTH) {
       currentGuess += letter;
@@ -24,6 +25,27 @@ async function init () {
   async function commit () {
     if (currentGuess.length !== ANSWER_LENGTH) {
       return;
+    }
+
+    const guessParts = currentGuess.split('');
+    const map = makeMap(wordParts);
+    console.log(map);
+
+    for (let index = 0; index < ANSWER_LENGTH; index++) {
+      if (guessParts[index] === wordParts[index]) {
+        letters[currentRow * ANSWER_LENGTH + index].classList.add('correct');
+        map[guessParts[index]]--;
+      }
+    }
+
+    for (let index = 0; index < ANSWER_LENGTH; index++) {
+      if (guessParts[index] === wordParts[index]) {
+        // Do nothing
+      } else if (wordParts.includes(guessParts[index]) && map[guessParts[index]] > 0) {
+        letters[currentRow * ANSWER_LENGTH + index].classList.add('close');
+      } else {
+        letters[currentRow * ANSWER_LENGTH + index].classList.add('wrong');
+      }
     }
     currentRow++;
     currentGuess = '';
@@ -55,4 +77,16 @@ function setLoading (isLoading) {
   loadingDiv.classList.toggle('hidden', !isLoading);
 }
 
+function makeMap (array) {
+  const obj = {};
+  for (let i = 0; i < array.length; i++) {
+    const letter = array[i];
+    if (obj[letter]) {
+      obj[letter]++;
+    } else {
+      obj[letter] = 1;
+    }
+  }
+  return obj;
+}
 init();
